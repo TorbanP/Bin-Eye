@@ -14,8 +14,8 @@ Author:	tpeterson
 
 
 //Radio parameters
-#define SERVER_ADDRESS 0x00
-#define CLIENT_ADDRESS 0xFE
+#define SERVER_ADDRESS			0x00
+#define CLIENT_ADDRESS			0xFE
 
 // 1-wire commands
 #define HT_Power	            0x09 //PIN to turn on sensor string
@@ -55,15 +55,13 @@ uint8_t tdata[2];
 uint16_t CRC16;
 
 struct packet {
-	uint8_t packet_type = HT_SEND_PACKET;
+	char packet_type[8] = {'H', 'T', 'S', '0', '0', '0', '0', '1'};
 	uint8_t UUID[8];
 	uint8_t sensor_count = SENSORS_PER_STRING;
 	uint16_t humidity[SENSORS_PER_STRING];
 	uint16_t temperature[SENSORS_PER_STRING];
 	int8_t sensor_RSSI;
 	int8_t sensor_SNR;
-	int8_t gateway_RSSI;
-	int8_t gateway_SNR;
 } payload;
 
 
@@ -273,13 +271,13 @@ void loop() {
 		Serial.print(F(", Last SNR: "));
 		Serial.println(payload.sensor_SNR);
 	}
-	delay(8); // Allow serial to finish writing
+	delay(8); // Allow serial to finish writing TODO serial.flush()?
 	driver.sleep();
 	
 	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-	//LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-	//LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-	//LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
 	digitalWrite(HT_Power, HIGH); // Power up the sensor string
 	delay(500);
