@@ -39,9 +39,10 @@ Author:	tpeterson
 #define EEPROM_UUID				0x01 // EEPROM address for UUID
 #define EEPROM_RADIOID			0x09 // EEPROM address for radioid
 #define EEPROM_SENSORS			0x10 // Start address for sensor 
-#define VERSION					0x05 // Version of software. Increment to refresh EEPROM
+#define VERSION					0x06 // Version of software. Increment to refresh EEPROM
 #define HT_SEND_PACKET			0x01 // Identifier for packet type, unique to each client product
 #define SENSORS_PER_STRING		0x06 // Number of sensors per string TODO dynamic?
+#define BYTES_FOR_SENSORS		0x0C // 2xSENSORS_PER_STRING
 #define ONEWIRE_ADDRESS_LENGTH  0x08 // bytes in a onewire address
 //#define STRINGS					0x01 // Number of strings TODO
 
@@ -55,17 +56,17 @@ uint8_t tdata[2];
 uint16_t CRC16;
 
 struct packet {
-	char packet_type[8] = {'H', 'T', 'S', '0', '0', '0', '0', '1'};
-	uint8_t UUID[8];
-	uint8_t sensor_count = SENSORS_PER_STRING;
-	uint16_t humidity[SENSORS_PER_STRING];
-	uint16_t temperature[SENSORS_PER_STRING];
-	int8_t sensor_RSSI;
-	int8_t sensor_SNR;
+	char packet_type[8] = { 'H', 'T', 'S', '0', '0', '0', '0', '1' }; // [0]
+	uint8_t UUID[8];												// [8]
+	uint8_t sensor_count = BYTES_FOR_SENSORS;						// [16]
+	uint8_t humidity[BYTES_FOR_SENSORS];							// [17]
+	uint8_t temperature[BYTES_FOR_SENSORS];							// [29]
+	int8_t sensor_RSSI;												// [41]
+	int8_t sensor_SNR;												// [42]
 } payload;
 
 
-uint8_t UUID[8]; 
+uint8_t UUID[8];
 uint8_t radio_address = 0xFE;
 
 // Variables for Radio
@@ -142,7 +143,7 @@ void setup() {
 		Serial.println(F("Radio init failed"));
 	manager.setThisAddress(EEPROM.read(EEPROM_RADIOID));
 	driver.setFrequency(915.0);
-	driver.setTxPower(19, false);  // Modtronix inAir9 power transmitter power for -1 to 14 dBm and with useRFO true
+	driver.setTxPower(19, false);  //
 	driver.setCADTimeout(10000); // wait until Channel Activity Detection shows no activity on the channel before transmitting
 	Serial.println(F("Begin Slave..."));
 
@@ -151,13 +152,25 @@ void setup() {
 	}
 }
 
-
 void loop() {
 
-	for (uint8_t i=0;i<SENSORS_PER_STRING;i++) {
+	for (uint8_t i = 0; i < SENSORS_PER_STRING; i++) {
 		//read address from EEPROM
 		for (uint8_t j = 0; j < ONEWIRE_ADDRESS_LENGTH; j++) {
 			UUID[j] = EEPROM.read(EEPROM_SENSORS + i*ONEWIRE_ADDRESS_LENGTH + j);
+		}
+
+		//debug
+		for (uint8_t i = 0; i < 8; i++) {
+
+			if (UUID[i] < 16) {
+				Serial.print(F("0x0"));
+			}
+			else {
+				Serial.print(F("0x"));
+			}
+			Serial.print(UUID[i], HEX);
+			Serial.print(F(" "));
 		}
 
 		//Step 1/5 - setup parameters
@@ -210,14 +223,13 @@ void loop() {
 
 		if (oneWire.read() == 0) {						   // store and convert the reply
 			oneWire.read_bytes(hdata, sizeof(hdata));
-			payload.humidity[i] = hdata[0];
-			payload.humidity[i] <<= 8;
-			payload.humidity[i] |= hdata[1];
+			payload.humidity[2 * i] = hdata[0];
+			payload.humidity[2 * i + 1] = hdata[1];
 		}
 		else {
-			payload.humidity[i] = 0xFFFF;
+			payload.humidity[2 * i] = 0xFF;
+			payload.humidity[2 * i + 1] = 0xFF;
 		}
-
 
 		// Step 4/5 - Send Temperature read packet
 		request_packet[0] = Write_Data_Stop;               // Command ("Write Data With Stop")
@@ -251,12 +263,26 @@ void loop() {
 
 		if (oneWire.read() == 0) {
 			oneWire.read_bytes(tdata, sizeof(tdata));
-			payload.temperature[i] = tdata[0];
-			payload.temperature[i] <<= 8;
-			payload.temperature[i] |= tdata[1];
+			payload.temperature[2 * i] = tdata[0];
+			payload.temperature[2 * i + 1] = tdata[1];
+
+			//debug
+			uint16_t temp = ((payload.temperature[2 * i] & 0xff) << 8) | (payload.temperature[2 * i + 1]);
+			uint16_t humi = ((payload.humidity[2 * i] & 0xff) << 8) | (payload.humidity[2 * i + 1]);
+			float convh = (humi);// / 0xFFFF)*100;
+			float convt = (temp);// / 0xFFFF)*165-40;
+			convh = (convh / 0xFFFF) * 100;
+			convt = (convt / 0xFFFF) * 165 - 40;
+			Serial.print("RH: ");
+			Serial.print(convh);
+			Serial.print(", T: ");
+			Serial.print(convt);
+			Serial.println();
+
 		}
 		else {
-			payload.temperature[i] = 0xFFFF;
+			payload.temperature[2 * i] = 0xff;
+			payload.temperature[2 * i + 1] = 0xff;
 		}
 	}
 	digitalWrite(HT_Power, LOW);  // Shut down sensors
@@ -271,14 +297,17 @@ void loop() {
 		Serial.print(F(", Last SNR: "));
 		Serial.println(payload.sensor_SNR);
 	}
-	delay(8); // Allow serial to finish writing TODO serial.flush()?
+	Serial.flush();// delay(8); // Allow serial to finish writing TODO serial.flush()?
 	driver.sleep();
-	
+
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 	LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
 	digitalWrite(HT_Power, HIGH); // Power up the sensor string
-	delay(500);
 }

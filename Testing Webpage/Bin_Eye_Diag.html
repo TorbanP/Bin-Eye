@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<body>
+	<span id="tstamp"></span><br>
+    <span id="temp1"></span><span id="humid1"></span><br>
+	<span id="temp2"></span><span id="humid2"></span><br>
+    <span id="temp3"></span><span id="humid3"></span><br>
+	<span id="temp4"></span><span id="humid4"></span><br>
+    <span id="temp5"></span><span id="humid5"></span><br>
+	<span id="temp6"></span><span id="humid6"></span><br>	
+
+    <button id="connectbutton1" onclick="get_temperature()">Read Temperature</button>
+	<button id="connectbutton2" onclick="get_humidity()">Read Relative Humidity</button>
+    <script type="text/javascript">
+
+    function get_temperature(objButton) {
+
+        document.getElementById("temp1").innerHTML = "Waiting for data...";
+        document.getElementById("tstamp").innerHTML ="";
+		
+        var deviceID = "370026001147353236343033";
+        var accessToken = "16af97f4d7ef814fdfd888256f3d9146a5735c58";
+		
+        var varName1 = "temp_1";
+		var varName2 = "temp_2";
+		var varName3 = "temp_3";
+		var varName4 = "temp_4";
+		var varName5 = "temp_5";
+		var varName6 = "temp_6";
+		
+        requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName1 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp1").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp1").style.fontSize = "28px";
+                 document.getElementById("tstamp").innerHTML = json.coreInfo.last_heard;
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName2 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp2").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp2").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName3 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp3").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp3").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName4 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp4").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp4").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName5 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp5").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp5").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName6 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("temp6").innerHTML = json.result.toFixed(2) + "&deg; C	&nbsp;&nbsp;&nbsp;&nbsp;";
+                 document.getElementById("temp6").style.fontSize = "28px";
+
+                 });
+				 
+    }
+	    function get_humidity(objButton) {
+
+		
+        var deviceID = "370026001147353236343033";
+        var accessToken = "16af97f4d7ef814fdfd888256f3d9146a5735c58";
+		
+        var varName1 = "humid_1";
+		var varName2 = "humid_2";
+		var varName3 = "humid_3";
+		var varName4 = "humid_4";
+		var varName5 = "humid_5";
+		var varName6 = "humid_6";
+		
+        requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName1 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid1").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid1").style.fontSize = "28px";
+                 document.getElementById("tstamp").innerHTML = json.coreInfo.last_heard;
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName2 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid2").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid2").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName3 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid3").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid3").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName4 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid4").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid4").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName5 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid5").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid5").style.fontSize = "28px";
+
+                 });
+		requestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + varName6 + "/?access_token=" + accessToken;
+        $.getJSON(requestURL, function(json) {
+                 document.getElementById("humid6").innerHTML = json.result.toFixed(2) + "&deg; %";
+                 document.getElementById("humid6").style.fontSize = "28px";
+
+                 });
+				 
+    }
+    </script>
+</body>
+</html>
